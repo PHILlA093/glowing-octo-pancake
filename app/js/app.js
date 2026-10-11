@@ -569,6 +569,7 @@ function renderMine() {
   UI.$('#setKey').value = s.ai.apiKey || '';
   UI.$('#setModel').value = s.ai.model || '';
   UI.$('#setBase').value = s.ai.baseUrl || '';
+  renderProviders();
 
   const vn = UI.$('#voiceNote');
   const asr = Voice.asrAvailable(), tts = Voice.ttsAvailable();
@@ -593,6 +594,58 @@ function renderMine() {
   }
 }
 
+/* ============================================================
+ * 接口预设：一键切换
+ * ------------------------------------------------------------
+ * 默认那家是免费的。用户不需要懂 baseUrl 和 model 是什么，
+ * 点一下就把地址和模型都填好，只剩"粘一个 Key"这件事要做。
+ * ============================================================ */
+function currentProvider() {
+  const s = Store.load();
+  if (s.ai.providerId) return Providers.getProvider(s.ai.providerId);
+  // 老用户升级上来时没有 providerId，按已填的地址反推
+  return Providers.detectProvider(s.ai.baseUrl);
+}
+
+function renderProviders() {
+  const cur = currentProvider();
+  const row = UI.$('#provRow');
+  row.innerHTML = '';
+  Providers.PROVIDERS.forEach(function (p) {
+    const b = document.createElement('button');
+    b.className = 'prov' + (p.id === cur.id ? ' on' : '');
+    b.innerHTML = '<span class="prov-name">' + UI.esc(p.name) + '</span>'
+      + '<span class="prov-tag">' + UI.esc(p.tag) + '</span>';
+    b.onclick = function () { pickProvider(p.id); };
+    row.appendChild(b);
+  });
+  UI.$('#provNote').textContent = cur.note;
+  UI.$('#privacyNote').textContent = cur.privacy
+    + ' Key 只存在这台手机里，App 也读不到你手机上的其他东西。'
+    + (cur.keyUrl ? ' 去 ' + cur.keyUrl + ' 注册就能拿。' : '');
+  UI.$('#keyLabel').textContent = 'API Key';
+  UI.$('#setKey').placeholder = cur.keyHint || '没有也能用，只是它只会陪着';
+}
+
+function pickProvider(id) {
+  const p = Providers.getProvider(id);
+  const s = Store.load();
+  const changed = s.ai.providerId !== p.id;
+  s.ai.providerId = p.id;
+  if (p.id !== 'custom') {
+    // 自定义保留用户自己填的，其余一律套预设，免得还要手抄地址
+    s.ai.baseUrl = p.baseUrl;
+    s.ai.model = p.model;
+  }
+  Store.saveNow();
+  renderMine();
+  if (p.id === 'glm' && !AI.hasKey()) {
+    UI.toast('换成免费的智谱了。去 open.bigmodel.cn 注册，把 Key 粘进来就能聊。', 4200);
+  } else if (changed) {
+    UI.toast('换成 ' + p.name + ' 了');
+  }
+}
+
 function wireMine() {
   UI.$('#setAutoSpeak').onchange = function () {
     const s = Store.load(); s.profile.autoSpeak = this.checked; Store.saveNow(); syncSpeakIcon();
@@ -610,10 +663,17 @@ function wireMine() {
     const s = Store.load(); s.ai.apiKey = this.value.trim(); Store.save();
   };
   UI.$('#setModel').oninput = function () {
-    const s = Store.load(); s.ai.model = this.value.trim() || 'deepseek-chat'; Store.save();
+    const s = Store.load();
+    s.ai.model = this.value.trim() || 'glm-4-flash';
+    // 手改过地址/模型就不再算预设那家了，免得卡片高亮与实际不符
+    s.ai.providerId = Providers.detectProvider(s.ai.baseUrl).id;
+    Store.save();
   };
   UI.$('#setBase').oninput = function () {
-    const s = Store.load(); s.ai.baseUrl = this.value.trim() || 'https://api.deepseek.com'; Store.save();
+    const s = Store.load();
+    s.ai.baseUrl = this.value.trim() || 'https://open.bigmodel.cn/api/paas/v4';
+    s.ai.providerId = Providers.detectProvider(s.ai.baseUrl).id;
+    Store.save();
   };
 
   UI.$('#btnTestSpeak').onclick = function () {

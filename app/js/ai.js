@@ -48,18 +48,21 @@ function hasKey() {
 
 function endpoint() {
   const ai = Store.load().ai;
-  let base = (ai.baseUrl || 'https://api.deepseek.com').trim().replace(/\/+$/, '');
+  let base = (ai.baseUrl || 'https://open.bigmodel.cn/api/paas/v4').trim().replace(/\/+$/, '');
   // 允许用户填 .../v1 或裸域名
   return base + '/chat/completions';
 }
 
 function payloadFor(messages, opts) {
   const ai = Store.load().ai;
+  const want = typeof (opts && opts.temperature) === 'number' ? opts.temperature : ai.temperature;
   return {
     url: endpoint(),
     apiKey: (ai.apiKey || '').trim(),
-    model: ai.model || 'deepseek-chat',
-    temperature: typeof (opts && opts.temperature) === 'number' ? opts.temperature : ai.temperature,
+    model: ai.model || 'glm-4-flash',
+    // 各家温度取值范围不同（智谱 [0,1)，DeepSeek [0,2]），
+    // 不夹紧会被接口以"参数非法"直接拒掉：暖屿默认 1.3 发给智谱会报错。
+    temperature: window.Providers ? Providers.clampTemperature(ai.providerId, want) : want,
     maxTokens: (opts && opts.maxTokens) || ai.maxTokens || 400,
     messages: messages
   };

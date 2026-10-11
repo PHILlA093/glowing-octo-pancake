@@ -148,16 +148,19 @@
 
       <div class="card">
         <div class="card-title">它靠什么说话</div>
-        <label class="row col"><span>API Key</span>
-          <input type="password" id="setKey" class="inp" placeholder="sk-... 没有也能用，只是它只会陪着，说不出别的话" autocomplete="off">
+        <div class="prov-row" id="provRow"></div>
+        <div class="prov-note" id="provNote"></div>
+
+        <label class="row col"><span id="keyLabel">API Key</span>
+          <input type="password" id="setKey" class="inp" placeholder="没有也能用，只是它只会陪着，说不出别的话" autocomplete="off">
         </label>
         <label class="row col"><span>模型</span>
-          <input type="text" id="setModel" class="inp" placeholder="deepseek-chat">
+          <input type="text" id="setModel" class="inp" placeholder="glm-4-flash">
         </label>
         <label class="row col"><span>接口地址</span>
-          <input type="text" id="setBase" class="inp" placeholder="https://api.deepseek.com">
+          <input type="text" id="setBase" class="inp" placeholder="https://open.bigmodel.cn/api/paas/v4">
         </label>
-        <div class="row-note">Key 只存在这台手机里，不上传任何服务器。</div>
+        <div class="row-note" id="privacyNote"></div>
         <button class="ghost-btn" id="btnTestAI">测一下通不通</button>
         <div class="row-note" id="aiNote"></div>
       </div>
@@ -231,6 +234,7 @@
 </div>
 
 <script src="js/store.js"></script>
+<script src="js/providers.js"></script>
 <script src="js/persona.js"></script>
 <script src="js/comfort.js"></script>
 <script src="js/ai.js"></script>

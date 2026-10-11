@@ -20,8 +20,11 @@ const DEFAULT = {
     calm: false           // 陪伴模式（呼吸 + 环境音）
   },
   ai: {
-    baseUrl: 'https://api.deepseek.com',
-    model: 'deepseek-chat',
+    // 默认选免费那家：新用户装完只要去注册个号、粘个 Key 就能聊，
+    // 不用先充值、也不用梯子。想更自然可以去「我的」切 DeepSeek。
+    providerId: 'glm',
+    baseUrl: 'https://open.bigmodel.cn/api/paas/v4',
+    model: 'glm-4-flash',
     apiKey: '',
     temperature: 1.3,
     maxTokens: 400
@@ -40,9 +43,12 @@ function clone(o) { return JSON.parse(JSON.stringify(o)); }
 
 function load() {
   if (state) return state;
+  let savedAi = null;
   try {
     const raw = localStorage.getItem(KEY);
-    state = raw ? Object.assign(clone(DEFAULT), JSON.parse(raw)) : clone(DEFAULT);
+    const parsed = raw ? JSON.parse(raw) : null;
+    savedAi = (parsed && parsed.ai) || null;
+    state = parsed ? Object.assign(clone(DEFAULT), parsed) : clone(DEFAULT);
     // 深合并容易漏，逐块兜底
     state.profile = Object.assign(clone(DEFAULT.profile), state.profile || {});
     state.ai = Object.assign(clone(DEFAULT.ai), state.ai || {});
@@ -52,7 +58,20 @@ function load() {
     state.likes = state.likes || [];
   } catch (e) {
     state = clone(DEFAULT);
+    savedAi = null;
   }
+
+  // 升级兼容：v5 之前没有 providerId 这个字段。
+  // 不能让它被默认值（免费那家）覆盖 —— 老用户填的是 DeepSeek 的地址，
+  // 硬套默认会导致"卡片显示智谱已选中、实际还在连 DeepSeek"这种
+  // 界面与实际不符的静默错误。按他自己填的地址反推才对。
+  if (!savedAi || !savedAi.providerId) {
+    const guess = window.Providers
+      ? Providers.detectProvider(state.ai.baseUrl).id
+      : 'custom';
+    state.ai.providerId = guess;
+  }
+
   const now = Date.now();
   if (!state.firstOpen) state.firstOpen = now;
   state.lastOpen = now;

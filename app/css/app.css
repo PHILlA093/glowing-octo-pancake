@@ -453,6 +453,20 @@ input[type=range]::-webkit-slider-thumb{
 .comp-tag{ font-size:11px; color:var(--ink-soft); margin-top:3px; }
 
 .like-list{ display:flex; flex-wrap:wrap; gap:8px; }
+
+/* ---- 接口预设：点一下就把地址和模型填好 ---- */
+.prov-row{ display:grid; grid-template-columns:1fr 1fr; gap:9px; }
+.prov{
+  border:1.5px solid var(--line); background:var(--surface-2); cursor:pointer;
+  border-radius:var(--r-sm); padding:11px 12px; text-align:left; font-family:inherit;
+  display:flex; flex-direction:column; gap:3px;
+  transition:border-color .2s ease, background .2s ease;
+}
+.prov:active{ transform:scale(.97); }
+.prov.on{ border-color:var(--brand); background:var(--brand-soft); }
+.prov-name{ font-size:14px; font-weight:600; color:var(--ink); }
+.prov-tag{ font-size:11px; color:var(--brand-deep); }
+.prov-note{ font-size:12.5px; color:var(--ink-soft); line-height:1.65; margin:11px 0 4px; }
 .like-chip{
   display:inline-flex; align-items:center; gap:6px;
   background:var(--surface-2); border:1px solid var(--line);
