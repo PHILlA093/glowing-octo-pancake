@@ -1,0 +1,25 @@
+# ---- 依赖：可由 npm install 重建，不入库 ----
+node_modules/
+
+# ---- 构建产物：由 _scripts/build-apk.js 重建，不入库 ----
+android/.gradle/
+android/build/
+android/app/build/
+android/capacitor-cordova-android-plugins/
+android/app/src/main/assets/public/
+www/
+_www-manifest.txt
+
+# ---- 机器相关：每台机器不同，不入库 ----
+android/local.properties
+
+# ---- 开发期截图与临时文件 ----
+_shots/
+*.log
+*.tmp
+*.bak
+*.bak_*
+
+# ---- 注意 ----
+# dist/ 里的安装包是**要入库的**（对外交付物），所以这里不排除 dist/
+# 用户自己的 API Key 只存在于手机 localStorage，任何时候都不进仓库

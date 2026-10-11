@@ -1,0 +1,13 @@
+{
+  "appId": "com.philia.nuanyu",
+  "appName": "暖屿",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": false
+    }
+  }
+}

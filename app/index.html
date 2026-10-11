@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#FFF8F2">
+<meta name="format-detection" content="telephone=no">
+<title>暖屿</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<!-- ============ 图标库 ============ -->
+<svg style="display:none" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 10.5 12 4l8 6.5V19a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 19z"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M20 12a7.5 7.5 0 0 1-11 6.6L5 20l1.4-3.8A7.5 7.5 0 1 1 20 12z"/></symbol>
+  <symbol id="i-trace" viewBox="0 0 24 24"><path d="M5 5.5A1.5 1.5 0 0 1 6.5 4h11A1.5 1.5 0 0 1 19 5.5v13A1.5 1.5 0 0 1 17.5 20h-11A1.5 1.5 0 0 1 5 18.5z"/><path d="M8.5 9h7M8.5 12.5h7M8.5 16h4"/></symbol>
+  <symbol id="i-mine" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c0-3.6 3.1-5.5 7-5.5s7 1.9 7 5.5"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M4.5 12 20 4.5 15 19l-4-5.5z"/><path d="M11 13.5 20 4.5"/></symbol>
+  <symbol id="i-sound" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13L7.5 14.5H4z"/><path d="M15.5 9.5a3.5 3.5 0 0 1 0 5M18 7a7 7 0 0 1 0 10"/></symbol>
+  <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9.5h3.5L12 5.5v13L7.5 14.5H4z"/><path d="m16 9.5 4 5M20 9.5l-4 5"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5"/></symbol>
+  <symbol id="i-left" viewBox="0 0 24 24"><path d="M14.5 5.5 8 12l6.5 6.5"/></symbol>
+  <symbol id="i-right" viewBox="0 0 24 24"><path d="M9.5 5.5 16 12l-6.5 6.5"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M6.5 4h3l1.5 3.5-2 1.5a11 11 0 0 0 6 6l1.5-2L20 14.5v3a2 2 0 0 1-2.2 2A15 15 0 0 1 4.5 6.2 2 2 0 0 1 6.5 4z"/></symbol>
+</svg>
+
+<div id="app">
+
+  <!-- ==================== 屿上（首页） ==================== -->
+  <section class="screen is-active" id="scr-home">
+    <div class="home-wrap">
+      <div class="home-top">
+        <div class="greet" id="homeGreet">我在。</div>
+        <div class="greet-sub" id="homeSub">什么都不用说也行。</div>
+      </div>
+
+      <div class="orb-stage">
+        <div class="orb" id="orb">
+          <div class="orb-core"></div>
+          <div class="orb-ring"></div>
+          <div class="orb-ring r2"></div>
+        </div>
+        <div class="orb-name" id="orbName">屿</div>
+        <div class="orb-line" id="orbLine">我在。</div>
+      </div>
+
+      <button class="calm-btn" id="btnCalm">
+        <span class="calm-dot"></span><span id="calmLabel">就想待一会儿</span>
+      </button>
+
+      <div class="checkin">
+        <div class="checkin-title" id="checkinTitle">此刻是什么感觉</div>
+        <div class="mood-row" id="moodRow"></div>
+        <div class="checkin-note" id="checkinNote"></div>
+      </div>
+
+      <div class="quick-row">
+        <button class="quick" data-go="chat"><svg class="ic"><use href="#i-chat"/></svg><span>说点什么</span></button>
+        <button class="quick" id="btnQuickTrace"><svg class="ic"><use href="#i-trace"/></svg><span>写下来</span></button>
+      </div>
+      <div class="home-pad"></div>
+    </div>
+  </section>
+
+  <!-- ==================== 说话（聊天） ==================== -->
+  <section class="screen" id="scr-chat">
+    <header class="chat-head">
+      <button class="icon-btn" id="btnCompanion"><span id="chatName">屿</span><span class="chev">▾</span></button>
+      <div class="head-right">
+        <button class="icon-btn" id="btnSpeakToggle" title="朗读"><svg class="ic"><use href="#i-mute" id="speakIcon"/></svg></button>
+        <button class="icon-btn" id="btnChatMore"><svg class="ic"><use href="#i-trace"/></svg></button>
+      </div>
+    </header>
+
+    <div class="msg-list" id="msgList"></div>
+
+    <div class="composer" id="composer">
+      <div class="listening-bar" id="listeningBar">
+        <span class="wave"><i></i><i></i><i></i><i></i><i></i></span>
+        <span id="listeningText">在听……</span>
+      </div>
+      <div class="composer-row">
+        <textarea id="input" rows="1" placeholder="想说什么都行，不说也行" enterkeyhint="send"></textarea>
+        <button class="mic-btn" id="btnMic" title="点一下说话，再点一下结束"><svg class="ic"><use href="#i-mic"/></svg></button>
+        <button class="send-btn" id="btnSend" title="发送"><svg class="ic"><use href="#i-send"/></svg></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ==================== 痕迹（记录） ==================== -->
+  <section class="screen" id="scr-trace">
+    <header class="page-head">
+      <h1>痕迹</h1>
+      <button class="text-btn" id="btnNewTrace"><svg class="ic"><use href="#i-plus"/></svg>写下来</button>
+    </header>
+    <div class="page-body">
+      <div class="stat-card">
+        <div class="stat"><b id="statDays">0</b><span>陪你走过的日子</span></div>
+        <div class="stat-div"></div>
+        <div class="stat"><b id="statTraces">0</b><span>留下的痕迹</span></div>
+      </div>
+
+      <div class="cal-card">
+        <div class="cal-head">
+          <button class="icon-btn sm" id="calPrev"><svg class="ic"><use href="#i-left"/></svg></button>
+          <span id="calTitle">2026 年 10 月</span>
+          <button class="icon-btn sm" id="calNext"><svg class="ic"><use href="#i-right"/></svg></button>
+        </div>
+        <div class="cal-week"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div>
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+      <div class="day-list" id="dayList"></div>
+    </div>
+  </section>
+
+  <!-- ==================== 我的 ==================== -->
+  <section class="screen" id="scr-mine">
+    <header class="page-head"><h1>我的</h1></header>
+    <div class="page-body">
+
+      <div class="card">
+        <div class="card-title">陪着你的是谁</div>
+        <div class="comp-row" id="compRow"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">语音</div>
+        <label class="row"><span>回复自动念出来</span><input type="checkbox" class="sw" id="setAutoSpeak"></label>
+        <label class="row"><span>语速</span><input type="range" id="setRate" min="0.6" max="1.3" step="0.02"></label>
+        <div class="row"><span>识别语言</span>
+          <select id="setLang" class="sel">
+            <option value="zh-CN">普通话</option>
+            <option value="yue-Hant-HK">粤语</option>
+            <option value="en-US">English</option>
+          </select>
+        </div>
+        <div class="row-note" id="voiceNote"></div>
+        <button class="ghost-btn" id="btnTestSpeak">试听一句</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">它靠什么说话</div>
+        <label class="row col"><span>API Key</span>
+          <input type="password" id="setKey" class="inp" placeholder="sk-... 没有也能用，只是它只会陪着，说不出别的话" autocomplete="off">
+        </label>
+        <label class="row col"><span>模型</span>
+          <input type="text" id="setModel" class="inp" placeholder="deepseek-chat">
+        </label>
+        <label class="row col"><span>接口地址</span>
+          <input type="text" id="setBase" class="inp" placeholder="https://api.deepseek.com">
+        </label>
+        <div class="row-note">Key 只存在这台手机里，不上传任何服务器。</div>
+        <button class="ghost-btn" id="btnTestAI">测一下通不通</button>
+        <div class="row-note" id="aiNote"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">它记得你什么</div>
+        <div class="like-list" id="likeList"></div>
+        <div class="row-note">只记你不喜欢吵这类偏好。你说过的难受，它不会拿出来讲。</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">别的</div>
+        <label class="row"><span>夜间模式</span><input type="checkbox" class="sw" id="setNight"></label>
+        <button class="ghost-btn" id="btnExport">导出我的数据</button>
+        <button class="ghost-btn danger" id="btnWipe">清空全部数据</button>
+      </div>
+
+      <div class="card safety">
+        <div class="card-title">如果你现在很危险</div>
+        <div class="safety-line"><svg class="ic"><use href="#i-phone"/></svg>全国心理援助热线 <b>12356</b></div>
+        <div class="safety-line"><svg class="ic"><use href="#i-phone"/></svg>北京心理危机干预中心 <b>010-82951332</b></div>
+        <div class="row-note">暖屿不是医生，也不做治疗。它只能陪着。真正撑不住的时候，请让真人接住你。</div>
+      </div>
+
+      <div class="about">暖屿 1.0 · 只要陪伴，不用解释</div>
+      <div class="home-pad"></div>
+    </div>
+  </section>
+
+  <!-- ==================== 底部导航 ==================== -->
+  <nav class="tabbar" id="tabbar">
+    <button class="tab is-active" data-tab="home"><svg class="ic"><use href="#i-home"/></svg><span>屿上</span></button>
+    <button class="tab" data-tab="chat"><svg class="ic"><use href="#i-chat"/></svg><span>说话</span></button>
+    <button class="tab" data-tab="trace"><svg class="ic"><use href="#i-trace"/></svg><span>痕迹</span></button>
+    <button class="tab" data-tab="mine"><svg class="ic"><use href="#i-mine"/></svg><span>我的</span></button>
+  </nav>
+
+  <!-- ==================== 浮层 ==================== -->
+  <div class="sheet-mask" id="sheetMask"></div>
+
+  <div class="sheet" id="sheetCompanion">
+    <div class="sheet-grip"></div>
+    <div class="sheet-title">换谁陪你</div>
+    <div id="sheetCompList"></div>
+  </div>
+
+  <div class="sheet" id="sheetTrace">
+    <div class="sheet-grip"></div>
+    <div class="sheet-title">想留下的</div>
+    <textarea id="traceText" class="sheet-ta" placeholder="想写就写，不想写也行。不写也能存一个今天。"></textarea>
+    <div class="mood-row sm" id="traceMoodRow"></div>
+    <div class="sheet-actions">
+      <button class="ghost-btn" id="btnTraceCancel">算了</button>
+      <button class="primary-btn" id="btnTraceSave">留下</button>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <!-- 危机卡：不阻断对话，只是轻轻放到你面前 -->
+  <div class="crisis-mask" id="crisisMask">
+    <div class="crisis-card">
+      <div class="crisis-title" id="crisisTitle">我在这儿，不走</div>
+      <div class="crisis-body" id="crisisBody"></div>
+      <div id="crisisLines"></div>
+      <div class="crisis-foot" id="crisisFoot"></div>
+      <button class="primary-btn wide" id="btnCrisisClose">知道了，继续待着</button>
+    </div>
+  </div>
+
+</div>
+
+<script src="js/store.js"></script>
+<script src="js/persona.js"></script>
+<script src="js/comfort.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/voice.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "name": "nuanyu-app",
+  "version": "1.0.0",
+  "description": "暖屿 · 只要陪伴，不用解释 (Capacitor 6 Android wrapper)",
+  "private": true,
+  "scripts": {
+    "sync:www": "node _scripts/sync-www.js",
+    "build:apk": "node _scripts/build-apk.js"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.2.2",
+    "@capacitor/cli": "^6.2.2",
+    "@capacitor/core": "^6.2.2"
+  }
+}
