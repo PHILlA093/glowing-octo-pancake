@@ -1,4 +1,4 @@
-package com.getcapacitor.myapp;
+package com.philia.nuanyu;
 
 import static org.junit.Assert.*;
 
@@ -9,18 +9,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
- * Instrumented test, which will execute on an Android device.
+ * 设备上的冒烟测试：确认装起来的确实是暖屿这个包。
  *
- * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
+ * 模板原本断言的是 com.getcapacitor.app（Capacitor 的示例包名），
+ * 与暖屿的 applicationId 不符 —— 那样这条测试永远是红的。
  */
 @RunWith(AndroidJUnit4.class)
 public class ExampleInstrumentedTest {
 
     @Test
-    public void useAppContext() throws Exception {
-        // Context of the app under test.
+    public void useAppContext() {
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-
-        assertEquals("com.getcapacitor.app", appContext.getPackageName());
+        assertEquals("com.philia.nuanyu", appContext.getPackageName());
     }
 }
