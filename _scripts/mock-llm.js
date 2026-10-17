@@ -19,6 +19,8 @@ const http = require('http');
 const PORT = Number(process.argv[2]) || 8899;
 
 const REPLY = '嗯。我在。\n不用解释什么，就这样待着也行。';
+// 门开着时的回复：带且只带一个问句，用来验证"用掉就自动关门"
+const REPLY_OPEN = '我在这儿。想说说吗？不想说也行。';
 
 http.createServer(function (req, res) {
   // 故障注入：验证 App 会不会把 4xx 原样糊到用户脸上
@@ -40,11 +42,17 @@ http.createServer(function (req, res) {
   req.on('end', function () {
     let parsed = {};
     try { parsed = JSON.parse(body); } catch (e) {}
+    // 门到底有没有真的打开：看系统提示词里有没有那段规则。
+    // 这是端到端验证"开关 -> 提示词"的唯一可靠办法。
+    const doorOpen = body.indexOf('把门打开了一条缝') >= 0;
+    const sysLen = ((parsed.messages || [])[0] || {}).content
+      ? parsed.messages[0].content.length : 0;
     console.log('[mock] 收到请求 model=' + parsed.model
       + ' stream=' + parsed.stream
       + ' 授权头=' + (req.headers.authorization ? '有' : '无')
       + ' 消息数=' + ((parsed.messages || []).length)
-      + ' 温度=' + parsed.temperature);
+      + ' 温度=' + parsed.temperature
+      + ' 门=' + (doorOpen ? '开（系统提示词 ' + sysLen + ' 字）' : '关（系统提示词 ' + sysLen + ' 字）'));
 
     res.writeHead(200, {
       'Content-Type': 'text/event-stream; charset=utf-8',
@@ -56,7 +64,7 @@ http.createServer(function (req, res) {
     res.write(': keep-alive\n\n');
     res.write('data: {"choices":[{"delta":{}}]}\n\n');
 
-    const chars = Array.from(REPLY);
+    const chars = Array.from(doorOpen ? REPLY_OPEN : REPLY);
     let i = 0;
     const timer = setInterval(function () {
       if (i >= chars.length) {

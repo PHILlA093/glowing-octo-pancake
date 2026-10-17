@@ -7,7 +7,7 @@ android {
         applicationId "com.philia.nuanyu"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 6
+        versionCode 7
         versionName "1.0"
         // versionCode 必须每出一版都 +1，安卓只在它变大时才覆盖安装。
         // 1 = 首个可运行版（首页/说话/痕迹/我的 + 本地陪伴 + 危机守护 + 语音桥）
@@ -19,6 +19,8 @@ android {
         //     并按各家取值范围夹紧 temperature（智谱是 [0,1)，1.3 会被拒）
         // 6 = 修升级兼容：老安装没有 providerId 字段，会被默认值套成"智谱"，
         //     导致卡片显示与实际连接的接口不一致；改为按其已填地址反推
+        // 7 = 门：首页留一个"可以问一句"的开关，按下后它才获得一次开口的许可。
+        //     问的只能是"要不要说"；一次之后自动关上；关掉不留记录、不追问、不提起
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

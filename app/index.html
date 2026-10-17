@@ -55,6 +55,9 @@
         <span class="calm-dot"></span><span id="calmLabel">就想待一会儿</span>
       </button>
 
+      <!-- 门：他自己按下的"可以问一句"。默认关，用一次就自动关上 -->
+      <button class="door-btn" id="btnDoor"><span id="doorLabel">可以问一句</span></button>
+
       <div class="checkin">
         <div class="checkin-title" id="checkinTitle">此刻是什么感觉</div>
         <div class="mood-row" id="moodRow"></div>
@@ -82,6 +85,10 @@
     <div class="msg-list" id="msgList"></div>
 
     <div class="composer" id="composer">
+      <div class="door-bar" id="doorBar">
+        <span>门开着，这一轮它可能会问一句。</span>
+        <button id="btnDoorClose">关上</button>
+      </div>
       <div class="listening-bar" id="listeningBar">
         <span class="wave"><i></i><i></i><i></i><i></i><i></i></span>
         <span id="listeningText">在听……</span>
@@ -176,6 +183,17 @@
         <label class="row"><span>夜间模式</span><input type="checkbox" class="sw" id="setNight"></label>
         <button class="ghost-btn" id="btnExport">导出我的数据</button>
         <button class="ghost-btn danger" id="btnWipe">清空全部数据</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">门</div>
+        <div class="row-note">平时它一句都不问 —— 你不说，它就不问。</div>
+        <div class="row-note">但有些话，是得先被问一句才说得出口的。</div>
+        <div class="row-note">所以首页留了一个开关：按下「可以问一句」，它就获得一次开口的许可。
+          问的只会是「要不要说」，不会问「发生了什么事」；一句之后门自己关上，
+          你不接它就当没问过。关上不会留任何记录，也不会被提起。</div>
+        <button class="ghost-btn" id="btnDoorFromMine">现在打开这条缝</button>
+        <div class="row-note" id="doorNote"></div>
       </div>
 
       <div class="card safety">

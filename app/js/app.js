@@ -32,6 +32,10 @@ function boot() {
   wireMine();
   wireVoice();
 
+  // 门：如果上次开着（App 被切走/杀掉），把倒计时接上或干脆合上
+  if (doorOpen()) armDoorTimer();
+  renderDoor();
+
   // 首次打开：只留一句问候，不提问
   if (!Store.chatOf(currentCompanion.id).length) {
     const g = Persona.openingGreeting(new Date());
@@ -96,6 +100,7 @@ function renderHome() {
   UI.renderMoodRow(UI.$('#moodRow'), today, onMoodPick);
   UI.$('#checkinTitle').textContent = today ? '今天已经打过卡了。想改也行' : '此刻是什么感觉';
   if (today) UI.$('#checkinNote').textContent = '';
+  renderDoor();
 }
 
 function onMoodPick(v) {
@@ -111,6 +116,116 @@ function onMoodPick(v) {
 function wireHome() {
   UI.$('#btnQuickTrace').onclick = function () { openTraceSheet(); };
   UI.$('#btnCalm').onclick = toggleCalm;
+  UI.$('#btnDoor').onclick = function () { doorOpen() ? closeDoor() : openDoor(); };
+  UI.$('#btnDoorClose').onclick = function () { closeDoor(); };
+  UI.$('#btnDoorFromMine').onclick = function () {
+    // 我这里故意用「缝」字对应的开关 —— 它是许可，不是升级
+    openDoor();
+    go('chat');
+  };
+  renderDoor();
+}
+
+/* ============================================================
+ * 门
+ * ------------------------------------------------------------
+ * 这是唯一允许它开口问的地方，而钥匙只在用户手里：
+ *   · 默认关 —— 不开的时候 App 的行为与原来一字不差（零问句）
+ *   · 一次性的 —— 不是性格设置，所以不给"永远开着"这种选项
+ *   · 用掉就关 —— 回复里出现第一个问号，门立刻自己关上
+ *   · 超时也关 —— 15 分钟没人说话，自己合上，不用你来做"关"这个动作
+ *                   （"关掉"本身像是在承认不想被看见，不该让人做这个决定）
+ *   · 关掉不留痕、不追问、不提起
+ * ============================================================ */
+const DOOR_MINUTES = 15;
+let doorTimer = null;
+
+function doorOpen() {
+  const p = Store.load().profile;
+  if (!p.askOpen) return false;
+  if (p.askUntil && Date.now() > p.askUntil) { closeDoor(true); return false; }
+  return true;
+}
+
+function openDoor() {
+  const p = Store.load().profile;
+  p.askOpen = true;
+  p.askUntil = Date.now() + DOOR_MINUTES * 60000;
+  Store.saveNow();
+  armDoorTimer();
+  renderDoor();
+  UI.toast('门开了一条缝。它最多问一句 —— 问什么你可以不答。', 4000);
+}
+
+/**
+ * @param {boolean} [silent] 自动关（问完 / 超时）时静默。
+ *   手动关也静默 —— 关掉不该被评价，也不该多一句话。
+ */
+function closeDoor(silent) {
+  const p = Store.load().profile;
+  const was = p.askOpen;
+  p.askOpen = false;
+  p.askUntil = 0;
+  Store.saveNow();
+  if (doorTimer) { clearTimeout(doorTimer); doorTimer = null; }
+  renderDoor();
+  if (!silent && was) UI.toast('关上了。它不会再问。', 2200);
+}
+
+function armDoorTimer() {
+  if (doorTimer) clearTimeout(doorTimer);
+  const p = Store.load().profile;
+  const left = Math.max(0, (p.askUntil || 0) - Date.now());
+  doorTimer = setTimeout(function () { closeDoor(true); }, left);
+}
+
+function renderDoor() {
+  const open = doorOpen();
+  const btn = UI.$('#btnDoor');
+  const label = UI.$('#doorLabel');
+  if (btn && label) {
+    btn.classList.toggle('open', open);
+    label.textContent = open ? '门开着 · 点一下关上' : '可以问一句';
+  }
+  const bar = UI.$('#doorBar');
+  if (bar) bar.classList.toggle('show', open);
+  const note = UI.$('#doorNote');
+  if (note) {
+    note.textContent = open
+      ? '门现在开着。它最多问一句「要不要说」，问完就自己关上。'
+      : '门是关的。它不会问任何东西。';
+  }
+  const fromMine = UI.$('#btnDoorFromMine');
+  if (fromMine) {
+    fromMine.textContent = open ? '现在关上' : '现在打开这条缝';
+    fromMine.onclick = function () {
+      if (doorOpen()) { closeDoor(); renderDoor(); return; }
+      openDoor(); go('chat');
+    };
+  }
+}
+
+/**
+ * 这句回复算不算"问了"。
+ * 不能只看问号 —— 中文口语里常常不打问号（"想说说吗，不想说也行"）。
+ * 误判的方向要选安全的一侧：宁可多认成"问了"把门提前关上，
+ * 也不要漏认成"没问"让门一直开着、后面冒出一句不该问的。
+ */
+function looksLikeAsk(text) {
+  const t = String(text || '').trim();
+  if (!t) return false;
+  if (/[?？]/.test(t)) return true;
+  if (/(要不要|想不想|愿不愿|说说吗|想说吗)/.test(t)) return true;
+  // 只认"吗"。"呢"在中文里多是语气词（"我听着呢""还在呢"），
+  // 认了会让门在没问的时候提前关上。
+  if (/[吗][。！…\s]?$/.test(t)) return true;
+  return false;
+}
+
+/** 回复里一旦问了，就是这次许可用掉了 —— 立刻关门（静默） */
+function spendDoorIfAsked(text) {
+  if (!doorOpen()) return;
+  if (looksLikeAsk(text)) closeDoor(true);
 }
 
 /* ---------- 陪伴模式：呼吸 + 环境声（WebAudio 合成，零素材） ---------- */
@@ -279,7 +394,9 @@ function submit(text) {
   }
 
   // 记住偏好（只记喜欢/怕这类，绝不记痛苦经历）
-  harvestLike(text);
+  // 门开着的时候不记 —— 他终于说出口的那几句，不该被悄悄归档。
+  // 那是他给的临时许可，不是给数据库的。
+  if (!doorOpen()) harvestLike(text);
 
   const typing = UI.createTypingEl();
   list.appendChild(typing);
@@ -289,7 +406,7 @@ function submit(text) {
     // 本地陪伴模式
     const wait = 420 + Math.random() * 520;
     setTimeout(function () {
-      const r = Comfort.reply(text, currentCompanion);
+      const r = Comfort.reply(text, currentCompanion, { door: doorOpen() });
       typing.remove();
       finishReply(cid, r);
     }, wait);
@@ -300,7 +417,7 @@ function submit(text) {
   let bubbleEl = null;
   let first = true;
 
-  const messages = [{ role: 'system', content: Persona.buildSystemPrompt(cid, { likes: Store.load().likes, now: new Date() }) }]
+  const messages = [{ role: 'system', content: Persona.buildSystemPrompt(cid, { likes: Store.load().likes, now: new Date(), door: doorOpen() }) }]
     .concat(Store.recentContext(cid, 16));
 
   streaming = AI.stream(messages, {
@@ -327,7 +444,7 @@ function submit(text) {
       if (typing.parentNode) typing.remove();
       if (bubbleEl && bubbleEl.parentNode) bubbleEl.remove();
       // 出错也保持住陪伴的角色，不把技术错误砸到用户脸上
-      const fallback = Comfort.reply(text, currentCompanion);
+      const fallback = Comfort.reply(text, currentCompanion, { door: doorOpen() });
       finishReply(cid, fallback);
       UI.toast('这次没连上，先用它自己的话陪你。' + String(err).slice(0, 40), 3400);
     }
@@ -351,6 +468,8 @@ function finishReply(cid, text, existing) {
     list.appendChild(UI.createMsgEl('assistant', text, ts));
   }
   UI.scrollBottom(list, true);
+  // 许可用掉了就关门：回复里出现问号 = 这一句"可以问"已经兑现
+  spendDoorIfAsked(text);
   if (Store.load().profile.autoSpeak) Voice.speak(text);
 }
 

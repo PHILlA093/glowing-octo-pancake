@@ -147,11 +147,13 @@ function pick(key, list) {
 /**
  * @param {string} userText 用户刚说的话
  * @param {{name:string}} companion 当前伙伴
- * @returns {string} 一句安慰（不追问、不分析、不建议）
+ * @param {{door?:boolean}} [opts] door=true 表示他自己开了门，这轮可以问一句
+ * @returns {string} 一句安慰（默认不追问、不分析、不建议）
  */
-function reply(userText, companion) {
+function reply(userText, companion, opts) {
   const t = String(userText || '');
   const name = (companion && companion.name) || '屿';
+  const door = !!(opts && opts.door) && !isCrisis(t);
 
   // 危机情形由上层（app.js）插入危机卡，这里只给一句"在"
   if (window.Persona && window.Persona.detectCrisis(t)) {
@@ -160,21 +162,50 @@ function reply(userText, companion) {
 
   const neg = /不|没|难|痛|哭|累|烦|怕|慌|崩|丧|emo|sad|委屈|孤单|孤独|绝望|糟糕|差/i.test(t);
 
+  let base;
+  let group = null;
   for (const g of HAPPY_SIDES) {
-    if (g.k.some(k => t.includes(k)) && !neg) return pick('happy', g.s);
+    if (g.k.some(k => t.includes(k)) && !neg) { group = 'happy'; base = pick('happy', g.s); break; }
   }
-  for (const g of SIDES) {
-    if (g.k.some(k => t.includes(k))) {
-      const s = pick('side', g.s);
-      // 极少情况下接一句陪伴，让回应不至于像自动回复
-      return Math.random() < 0.28 ? s + ' ' + pick('company', COMPANY) : s;
+  if (!base) {
+    for (const g of SIDES) {
+      if (g.k.some(k => t.includes(k))) {
+        const s = pick('side', g.s);
+        // 极少情况下接一句陪伴，让回应不至于像自动回复
+        base = Math.random() < 0.28 ? s + ' ' + pick('company', COMPANY) : s;
+        group = 'side';
+        break;
+      }
     }
   }
-  if (neg) {
-    const s = pick('company_neg', COMPANY);
-    return Math.random() < 0.35 ? s + ' ' + pick('company_neg2', COMPANY) : s;
+  if (!base) {
+    if (neg) {
+      const s = pick('company_neg', COMPANY);
+      base = Math.random() < 0.35 ? s + ' ' + pick('company_neg2', COMPANY) : s;
+    } else {
+      base = pick('company', COMPANY);
+    }
   }
-  return pick('company', COMPANY);
+
+  // 门开着：先接住，再决定要不要问。
+  // 本地模式没有模型可判断"他准备好没有"，所以只在一半的情况下问，
+  // 而且问的永远是"要不要说"，不问是什么事。整个回复最多一个问号。
+  if (door && group !== 'happy' && Math.random() < 0.5) {
+    base += ' ' + pick('door', DOOR_INVITES);
+  }
+  return base;
+}
+
+/* 门开着时才可能用到的一句邀请（只问"要不要说"，不问"是什么事"）
+   每一句都必须带问号 —— app.js 靠问号判断"这次许可用掉了没有"。 */
+const DOOR_INVITES = [
+  '想说说吗？不想说也行。',
+  '要不要让我知道一点？说不清也没关系。',
+  '想说说吗？说不清也没关系。'
+];
+
+function isCrisis(t) {
+  return !!(window.Persona && window.Persona.detectCrisis(t));
 }
 
 /* 深夜额外一句（只在本地模式偶尔用） */
